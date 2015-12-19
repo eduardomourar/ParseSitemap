@@ -27,12 +27,19 @@ Draw.loadPlugin(function(ui) {
     ui.keyHandler.bindAction(81, !0, "myParseSitemap", !0);
     
     // Adds menu
-    ui.menubar.addMenu('Sitemap', function(menu, parent) {
+    ui.menus.put('arrange', new Menu(mxUtils.bind(ui.menus, function(menu, parent)
+	{
+	    ui.menus.addMenuItems(menu, 'myParseSitemap', parent);
+	})));
+    /*ui.menubar.addMenu('Sitemap', function(menu, parent) {
         ui.menus.addMenuItem(menu, 'myParseSitemap');
-    });
+    });*/
 
     // Reorders menubar
     ui.menubar.container
       .insertBefore(ui.menubar.container.lastChild,
                     ui.menubar.container.lastChild.previousSibling.previousSibling);
+                    
+    // Displays status message
+    ui.editor.setStatus('ParseSitemap plugin loaded successfully!');
 });
