@@ -27,9 +27,9 @@ Draw.loadPlugin(function(ui) {
     ui.keyHandler.bindAction(81, !0, "myParseSitemap", !0);
     
     // Adds menu
-    ui.menus.put('arrange', new Menu(mxUtils.bind(ui.menus, function(menu, parent)
+    ui.menus.put('import', new Menu(mxUtils.bind(ui.menus, function(menu, parent)
 	{
-	    ui.menus.addMenuItems(menu, 'myParseSitemap', parent);
+	    ui.menus.addMenuItems(menu, ['-', 'myParseSitemap'], parent);
 	})));
     /*ui.menubar.addMenu('Sitemap', function(menu, parent) {
         ui.menus.addMenuItem(menu, 'myParseSitemap');
