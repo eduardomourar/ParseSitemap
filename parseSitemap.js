@@ -16,24 +16,48 @@ Draw.loadPlugin(function(ui) {
     */
     
     // Adds resources for actions
-    mxResources.parse('myParseSitemap=From Sitemap Text');
+    mxResources.parse('fromSitemapXmlFile=From Sitemap XML File');
+    mxResources.parse('fromSitemapText=From Sitemap Text');
     
-    // Adds action : myParseSitemap
-    ui.actions.addAction('myParseSitemap', function() {
+    // Adds action : fromSitemapXmlFile
+    ui.actions.addAction('fromSitemapXmlFile', function() {
     	ui.showDialog(new ParseDialog(ui).container, 620, 420, true, true);
     	ui.dialog.container.style.overflow = 'auto';
-    }, null, null, "Ctrl+Shift+S");
+    }, null, null, '');
     
-    ui.keyHandler.bindAction(81, !0, "myParseSitemap", !0);
+    ui.keyHandler.bindAction(81, !0, 'fromSitemapXmlFile', !0);
     
-    // Adds menu
-    ui.menus.put('import', new Menu(mxUtils.bind(ui.menus, function(menu, parent)
-	{
+    // Adds action : fromSitemapText
+    ui.actions.addAction('fromSitemapText', function() {
+    	ui.showDialog(new ParseDialog(ui).container, 620, 420, true, true);
+    	ui.dialog.container.style.overflow = 'auto';
+    }, null, null, '');
+    
+    ui.keyHandler.bindAction(81, !0, 'fromSitemapText', !0);
+    
+    var uiMenus = ui.menus;
+    
+    /* Adds menu
+    uiMenus.put('import', new Menu(mxUtils.bind(uiMenus, function(menu, parent) {
 	    ui.menus.addMenuItems(menu, ['-', 'myParseSitemap'], parent);
 	})));
-    /*ui.menubar.addMenu('Sitemap', function(menu, parent) {
+    ui.menubar.addMenu('Sitemap', function(menu, parent) {
         ui.menus.addMenuItem(menu, 'myParseSitemap');
     });*/
+    
+	// Replaces import from menu to add new menu item
+	uiMenus.put("importFrom", new Menu(mxUtils.bind(uiMenus, function(menu, parent) {
+        uiMenus.addMenuItems(menu, "googleDrive dropbox oneDrive - url - fromSitemapXmlFile".split(" "), parent)
+	})));
+    
+	// Replaces insert menu to add new menu item
+	uiMenus.put("insert", new Menu(mxUtils.bind(uiMenus, function(menu, parent) {
+        /*uiMenus.addMenuItems(menu, ["insertText", "insertRectangle", "insertEllipse", "-", "insertLink"], parent);
+        uiMenus.addMenuItem(menu, "image", parent).firstChild.nextSibling.innerHTML = mxResources.get("insertImage");
+        menu.addSeparator(parent);*/
+        uiMenus.addMenuItems(menu, "insertText insertRectangle insertEllipse - insertLink insertImage - ".split(" "), parent)
+        uiMenus.addMenuItems(menu, "horizontalFlow verticalFlow - horizontalTree verticalTree - organic circle - fromText  - fromSitemapText".split(" "), parent);
+	})));
 
     // Reorders menubar
     ui.menubar.container
