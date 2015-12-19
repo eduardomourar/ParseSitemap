@@ -7,7 +7,6 @@
 */
 Draw.loadPlugin(function(ui) {
     /* Finding assigned keys:
-    
       * Open javascript console
       * Draw.valueOf()
       * Traverse to: Object > loadPlugin > <function scope> 
@@ -37,27 +36,22 @@ Draw.loadPlugin(function(ui) {
     
     var uiMenus = ui.menus;
     
-    /* Adds menu
-    uiMenus.put('import', new Menu(mxUtils.bind(uiMenus, function(menu, parent) {
-	    ui.menus.addMenuItems(menu, ['-', 'myParseSitemap'], parent);
-	})));
+    // Adds menu
     ui.menubar.addMenu('Sitemap', function(menu, parent) {
-        ui.menus.addMenuItem(menu, 'myParseSitemap');
-    });*/
+       uiMenus.addMenuItem(menu, 'fromSitemapText');
+       uiMenus.addMenuItem(menu, 'fromSitemapXmlFile');
+    });
     
-	// Replaces import from menu to add new menu item
+	/* Replaces import from menu to add new menu item
 	uiMenus.put("importFrom", new Menu(mxUtils.bind(uiMenus, function(menu, parent) {
-        uiMenus.addMenuItems(menu, "googleDrive dropbox oneDrive - url - fromSitemapXmlFile".split(" "), parent)
+		uiMenus.addMenuItems(menu, "googleDrive dropbox oneDrive - url - fromSitemapXmlFile".split(" "), parent)
 	})));
     
 	// Replaces insert menu to add new menu item
 	uiMenus.put("insert", new Menu(mxUtils.bind(uiMenus, function(menu, parent) {
-        /*uiMenus.addMenuItems(menu, ["insertText", "insertRectangle", "insertEllipse", "-", "insertLink"], parent);
-        uiMenus.addMenuItem(menu, "image", parent).firstChild.nextSibling.innerHTML = mxResources.get("insertImage");
-        menu.addSeparator(parent);*/
         uiMenus.addMenuItems(menu, "insertText insertRectangle insertEllipse - insertLink insertImage - ".split(" "), parent)
         uiMenus.addMenuItems(menu, "horizontalFlow verticalFlow - horizontalTree verticalTree - organic circle - fromText  - fromSitemapText".split(" "), parent);
-	})));
+	})));*/
 
     // Reorders menubar
     ui.menubar.container
