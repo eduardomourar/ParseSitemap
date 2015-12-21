@@ -15,7 +15,7 @@ Draw.loadPlugin(function(ui) {
     */
     
     // Adds resources for actions
-    mxResources.parse('fromSitemap=From Sitemap');
+    mxResources.parse('fromSitemap=Insert from Sitemap');
     mxResources.parse('fromSitemapXmlFile=From Sitemap XML File');
     
     // Adds action : fromSitemap
@@ -74,10 +74,9 @@ Draw.loadPlugin(function(ui) {
 				var newVertex = vertices[id];
 	
 				if (newVertex == null) {
-					var label = id.match(/\/([^\/]+)\/[^\/]+$/);
-					newVertex = new mxCell(label, new mxGeometry(0, 0, 80, 30));
+					var label = id.match(/\/([^\/]+)[\/]?$/);
+					newVertex = new mxCell(label[1], new mxGeometry(0, 0, 80, 30),  id + '/');
 					newVertex.vertex = true;
-					newVertex.setAttribute('link', id + '/');
 					vertices[id] = newVertex;
 					cells.push(newVertex);
 				}
@@ -88,23 +87,24 @@ Draw.loadPlugin(function(ui) {
 			for (var i = 0; i < lines.length; i++) {
 				if (lines[i].charAt(0) != ';') {
 					
-					var values = lines[i].split('/'),
-						len = values.length;
+					var values = lines[i].split('/');
 						
-					if (!values[len - 1]) {
-						values.slice(0, -1);
+					if (!values[values.length - 1]) {
+						values = values.slice(0, -1);
 					}
 					
-					if (len > 1) {
+					if (values.length > 1) {
 						var target = getOrCreateVertex(values.join('/'));
-						values.slice(0, -1);
-						var source = getOrCreateVertex(values.join('/'));
-						
-						var newEdge = new mxCell('', new mxGeometry());
-						newEdge.edge = true;
-						source.insertEdge(newEdge, true);
-						target.insertEdge(newEdge, false);
-						cells.push(newEdge);
+						values = values.slice(0, -1);
+						if (values.length > 2) {
+							var source = getOrCreateVertex(values.join('/'));
+							
+							var newEdge = new mxCell('', new mxGeometry());
+							newEdge.edge = true;
+							source.insertEdge(newEdge, true);
+							target.insertEdge(newEdge, false);
+							cells.push(newEdge);
+						}
 					}
 				}
 			}
@@ -119,12 +119,14 @@ Draw.loadPlugin(function(ui) {
 					for (var i = 0; i < cells.length; i++) {
 						if (graph.getModel().isVertex(cells[i])) {
 							var size = graph.getPreferredSizeForCell(cells[i]);
+							graph.setLinkForCell(cells[i], cells[i].getStyle());
+							cells[i].setStyle = null;
 							cells[i].geometry.width = Math.max(cells[i].geometry.width, size.width);
 							cells[i].geometry.height = Math.max(cells[i].geometry.height, size.height);
 						}
 					}
 	
-					var layout = new mxFastOrganicLayout(graph);
+					var layout = new mxCompactTreeLayout(graph, false);
 					layout.disableEdgeStyle = false;
 					layout.forceConstant = 120;
 					layout.execute(graph.getDefaultParent());
@@ -178,12 +180,9 @@ Draw.loadPlugin(function(ui) {
 		}));
 		
 		div.appendChild(mxUtils.button(mxResources.get('cancel'), function() {
-			evt.confirm(mxResources.get("areYouSure"), function() {
-                editorUi.hideDialog();
-            });
+			editorUi.hideDialog();
 		}));
 		
 		this.container = div;
 	};
-
 });
