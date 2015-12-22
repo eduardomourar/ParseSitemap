@@ -61,27 +61,48 @@ Draw.loadPlugin(function(ui) {
     // Displays status message
     ui.editor.setStatus('ParseSitemap plugin loaded successfully!');
     
-    /**
-	 * Constructs a new dialog for sitemap insert.
+	/**
+	 * Constructs a new dialog to insert sitemap data.
 	 */
 	function InsertSitemap(editorUi) {
 		function parse(text) {
 			var lines = text.split('\n');
 			var vertices = new Object();
+			var edges = new Object();
 			var cells = [];
 			
-			function getOrCreateVertex(id) {
+			function getVertex(id) {
 				var newVertex = vertices[id];
 	
-				if (newVertex == null) {
+				if (!newVertex) {
 					var label = id.match(/\/([^\/]+)[\/]?$/);
-					newVertex = new mxCell(label[1], new mxGeometry(0, 0, 80, 30),  id + '/');
+					newVertex = new mxCell(label[1], new mxGeometry(0, 0, 80, 30),  id);
 					newVertex.vertex = true;
 					vertices[id] = newVertex;
 					cells.push(newVertex);
 				}
 				
 				return newVertex;
+			};
+			
+			function createConnection(srcValue, tgtValue) {
+				if (srcValue) {
+					var source = getVertex(srcValue);
+				}
+				
+				if (tgtValue) {
+					var target = getVertex(tgtValue);
+					var newEdge = edges[target.getStyle()];
+		
+					if (!newEdge) {
+						newEdge = new mxCell('', new mxGeometry(), "edgeStyle\x3dorthogonalEdgeStyle;");
+						newEdge.edge = true;
+						edges[target.getStyle()] = newEdge;
+						source.insertEdge(newEdge, true);
+						target.insertEdge(newEdge, false);
+						cells.push(newEdge);
+					}
+				}
 			};
 			
 			for (var i = 0; i < lines.length; i++) {
@@ -93,24 +114,23 @@ Draw.loadPlugin(function(ui) {
 						values = values.slice(0, -1);
 					}
 					
-					if (values.length > 1) {
-						var target = getOrCreateVertex(values.join('/'));
+					var src = null, tgt = null;
+					
+					for (var j = values.length; j > 3; j--) {
+						var tgt = values.join('/');
 						values = values.slice(0, -1);
-						if (values.length > 2) {
-							var source = getOrCreateVertex(values.join('/'));
-							
-							var newEdge = new mxCell('', new mxGeometry());
-							newEdge.edge = true;
-							source.insertEdge(newEdge, true);
-							target.insertEdge(newEdge, false);
-							cells.push(newEdge);
-						}
+						var src = values.join('/');
+						
+						createConnection(src, tgt);
 					}
 				}
 			}
 			
 			if (cells.length > 0) {
-				var graph = editorUi.editor.graph;
+                newElement = document.createElement('div');
+                newElement.style.visibility = 'hidden';
+                document.body.appendChild(newElement);
+				var graph = new Graph(newElement);
 				
 				graph.getModel().beginUpdate();
 				try {
@@ -120,15 +140,17 @@ Draw.loadPlugin(function(ui) {
 						if (graph.getModel().isVertex(cells[i])) {
 							var size = graph.getPreferredSizeForCell(cells[i]);
 							graph.setLinkForCell(cells[i], cells[i].getStyle());
-							cells[i].setStyle = null;
+							cells[i].setStyle('');
 							cells[i].geometry.width = Math.max(cells[i].geometry.width, size.width);
 							cells[i].geometry.height = Math.max(cells[i].geometry.height, size.height);
 						}
 					}
 	
-					var layout = new mxCompactTreeLayout(graph, false);
+					var layout = new mxCompactTreeLayout(graph, false);// mxHierarchicalLayout(graph);
 					layout.disableEdgeStyle = false;
 					layout.forceConstant = 120;
+					layout.edgeRouting = false;
+					layout.levelDistance = 30;
 					layout.execute(graph.getDefaultParent());
 					
 					graph.moveCells(cells, 20, 20);
@@ -136,6 +158,14 @@ Draw.loadPlugin(function(ui) {
 				finally {
 					graph.getModel().endUpdate();
 				}
+                graph.clearCellOverlays();
+                layout = editorUi.editor.graph.view;
+                bounds = editorUi.editor.graph.getGraphBounds();
+                size = Math.max(0, bounds.x / layout.scale - layout.translate.x) + graph.gridSize;
+                layout = Math.max(0, (bounds.y + bounds.height) / layout.scale - layout.translate.y) + 4 * graph.gridSize;
+                editorUi.editor.graph.setSelectionCells(editorUi.editor.graph.importCells(graph.getModel().getChildren(graph.getDefaultParent()), size, layout));
+                graph.destroy();
+                newElement.parentNode.removeChild(newElement);
 			}
 		};
 		
@@ -143,11 +173,17 @@ Draw.loadPlugin(function(ui) {
 		div.style.textAlign = 'right';
 		
 		var textarea = document.createElement('textarea');
-		textarea.style.width = '600px';
-		textarea.style.height = '374px';
+	    textarea.style.resize = 'none';
+        textarea.style.width = '100%';
+        textarea.style.height = '354px';
+        textarea.style.marginBottom = '16px';
 		
-		textarea.value = ';example\nhttp://www.chrisplaw.com/bus-accidents/\nhttp://www.chrisplaw.com/car-accidents/\nhttp://www.chrisplaw.com/car-accidents/compensation/\nhttp://www.chrisplaw.com/car-accidents/what-do-i-need-to-do/\n';
+		textarea.value = ';example\nhttp://www.google.com/edu/\nhttp://www.google.com/edu/partners/\nhttp://www.google.com/edu/stories/\nhttp://www.google.com/edu/stories/index.html\n';
 		div.appendChild(textarea);
+		
+        this.init = function() {
+            div.focus()
+        };
 		
 		// Enables dropping files
 		if (fileSupport) {
@@ -173,15 +209,21 @@ Draw.loadPlugin(function(ui) {
 			textarea.addEventListener('dragover', handleDragOver, false);
 			textarea.addEventListener('drop', handleDrop, false);
 		}
-	
-		div.appendChild(mxUtils.button(mxResources.get("insert"), function() {
+		
+		var dialogButton = mxUtils.button(mxResources.get('cancel'), function() {
+            editorUi.confirm(mxResources.get('areYouSure'), function() {
+				editorUi.hideDialog();
+			})
+		});
+		dialogButton.className = 'geBtn';
+		div.appendChild(dialogButton);
+		
+		dialogButton = mxUtils.button(mxResources.get('insert'), function() {
 			parse(textarea.value);
 			editorUi.hideDialog();
-		}));
-		
-		div.appendChild(mxUtils.button(mxResources.get('cancel'), function() {
-			editorUi.hideDialog();
-		}));
+		});
+		dialogButton.className = 'geBtn gePrimaryBtn';
+		div.appendChild(dialogButton);
 		
 		this.container = div;
 	};
