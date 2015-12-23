@@ -55,7 +55,8 @@ Draw.loadPlugin(function(ui) {
 
 				if (!newVertex) {
 					var label = id.match(/\/([^\/]+)[\/]?$/);
-					newVertex = new mxCell(label[1], new mxGeometry(0, 0, 80, 30), id);
+					label = decodeURI(label[1]);
+					newVertex = new mxCell(label, new mxGeometry(0, 0, 80, 30),  id);
 					newVertex.vertex = true;
 					vertices[id] = newVertex;
 					cells.push(newVertex);
@@ -129,8 +130,8 @@ Draw.loadPlugin(function(ui) {
 					var layout = new mxCompactTreeLayout(graph, false); // mxHierarchicalLayout(graph);
 					layout.disableEdgeStyle = false;
 					layout.forceConstant = 120;
-					layout.edgeRouting = false;
 					layout.levelDistance = 30;
+					layout.edgeRouting = false;
 					layout.execute(graph.getDefaultParent());
 
 					graph.moveCells(cells, 20, 20);
